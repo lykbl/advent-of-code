@@ -4,12 +4,6 @@ const fs = require('fs');
 
 const isDigit = (character) => !isNaN(parseInt(character))
 
-const gameStates = [
-  'initial',
-  'luckyNumbers',
-  'tellResults',
-];
-
 const games = [];
 const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf-8');
 let luckyNumbers, gameResult, numberAcc;
@@ -40,7 +34,7 @@ for (let i = 0; i < input.length; i++) {
     if (gameState === 1) {
       luckyNumbers[numberAcc] = true;
     } else if (gameState === 2 && luckyNumbers[numberAcc]) {
-      gameResult === 0 ? gameResult = 1 : gameResult *= 2;
+      gameResult = gameResult === 0 ? 1 : gameResult * 2;
     }
     numberAcc = '';
   }
