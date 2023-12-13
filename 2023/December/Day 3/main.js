@@ -1,96 +1,58 @@
 const args = process.argv.slice(2);
 const isTest = args.includes('--test');
 const fs = require('fs');
-function isGamePossible(setsLine, constraints) {
-  let cubesCount = '';
-  let color = '';
 
-  for (let char of setsLine) {
-    if (char === ' ') {
-      continue;
-    } else if (!isNaN(parseInt(char))) {
-      cubesCount += char;
-    } else if (char === ',' || char === ';') {
-      if (constraints[color] < parseInt(cubesCount)) {
-        return false;
+const isPartCharacter = (char) => char !== undefined && isNaN(parseInt(char)) && char !== '.' && char !== '\n';
+function analyzeNumber(input, firstDigitIndex, lineLength) {
+  const currentLine = Math.floor(firstDigitIndex / lineLength);
+  const lineStart = currentLine * lineLength
+  const lineEnd = lineStart + lineLength;
+  let middleCursor = firstDigitIndex - 1 > lineStart ? firstDigitIndex - 1 : firstDigitIndex;
+  let lastDigitIndex = firstDigitIndex;
+  let topCursor, bottomCursor;
+  let isPartNumber = false;
+  let value = '';
+
+  while (middleCursor >= lineStart && middleCursor <= lineEnd) {
+    topCursor = middleCursor - lineLength;
+    bottomCursor = middleCursor + lineLength;
+    isPartNumber = isPartCharacter(input[topCursor]) || isPartCharacter(input[bottomCursor]) || isPartNumber;
+
+    if (isNaN(parseInt(input[middleCursor]))) {
+      isPartNumber = isPartCharacter(input[middleCursor]) || isPartNumber;
+      if (middleCursor > firstDigitIndex) {
+        break;
       }
-      cubesCount = '';
-      color = '';
     } else {
-      color += char;
+      value += input[middleCursor];
+      lastDigitIndex = middleCursor;
     }
+
+    middleCursor += 1;
   }
 
-  return true;
+  return {
+    value: parseInt(value),
+    firstDigitIndex,
+    lastDigitIndex,
+    isPartNumber,
+  }
 }
 
-function fewestCubesNeeded(setsLine) {
-  let cubesCount = '';
-  let color = '';
-  const fewestCubesNeeded = {
-    'red': 0,
-    'green': 0,
-    'blue': 0,
-  };
-
-  for (let i = 0; i < setsLine.length; i++) {
-    const char = setsLine[i];
-    if (char === ' ') {
-      continue;
-    } else if (!isNaN(parseInt(char))) {
-      cubesCount += char;
-    } else if (char === ',' || char === ';') {
-      fewestCubesNeeded[color] = Math.max(fewestCubesNeeded[color], parseInt(cubesCount));
-      cubesCount = '';
-      color = '';
-    } else {
-      color += char;
-      if (i === setsLine.length - 1) {
-        fewestCubesNeeded[color] = Math.max(fewestCubesNeeded[color], parseInt(cubesCount));
-      }
+const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf-8');
+const lineLength = input.indexOf('\n') + 1;
+const partNumbers = [];
+for (let i = 0; i < input.length; i++) {
+  const char = input[i];
+  if (!isNaN(parseInt(char))) {
+    const numberAnalysis = analyzeNumber(input, i, lineLength);
+    if (numberAnalysis.isPartNumber) {
+      partNumbers.push(numberAnalysis);
     }
-  }
 
-  let power = 1;
-  for (let count in fewestCubesNeeded) {
-    power *= fewestCubesNeeded[count];
-  }
-
-  return power;
-}
-
-const gameLines = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf-8').split('\n');
-const constraints = {
-  'red': 12,
-  'green': 13,
-  'blue': 14,
-};
-let result = 0;
-const impossibleGames = [];
-for (let gameLine of gameLines) {
-  const [gameLabel, setsLine] = gameLine.split(': ');
-  const gameId = new RegExp(/Game ([\d]+)/).exec(gameLabel)[1];
-  if (isGamePossible(setsLine, constraints)) {
-    result += parseInt(gameId);
-  } else {
-    impossibleGames.push(gameId);
+    i = numberAnalysis.lastDigitIndex + 1;
   }
 }
 
-const gameStats = [];
-for (let gameLine of gameLines) {
-  const [gameLabel, setsLine] = gameLine.split(': ');
-  const gameId = new RegExp(/Game ([\d]+)/).exec(gameLabel)[1];
-  const fewestCubes = fewestCubesNeeded(setsLine);
-  gameStats.push({
-    gameId,
-    fewestCubes,
-  });
-}
-
-const totalPower = gameStats.reduce((acc, curr) => acc + curr.fewestCubes, 0);
-
-console.log(impossibleGames)
-console.log(result)
-console.log(gameStats)
-console.log(totalPower)
+console.log(partNumbers.map(partNumber => partNumber.value))
+console.log(partNumbers.reduce((acc, curr) => acc + curr.value, 0));
