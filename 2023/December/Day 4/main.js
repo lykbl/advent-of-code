@@ -6,43 +6,49 @@ const isDigit = (character) => !isNaN(parseInt(character))
 
 const games = [];
 const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf-8');
-let luckyNumbers, gameResult, numberAcc;
+let luckyNumbers, gameResult, numberAcc, copiedCardOffset, copiedCardIndex, currentCardCopies;
 let gameState = 0;
+let gameIndex = -1;
+
+Array.prototype.incrementIndex = function(index, value) {
+  this[index] === undefined ? this[index] = value : this[index] += value;
+}
 
 for (let i = 0; i < input.length; i++) {
   let character = input[i];
   if (character === ':') {
-    gameState = 1;
-    luckyNumbers = {};
-    gameResult = 0;
-    numberAcc = '';
+    [gameState, luckyNumbers, numberAcc, copiedCardOffset, gameIndex] = [1, {}, '', 0, ++gameIndex];
+    games.incrementIndex(gameIndex, 1);
+    // gameResult = 0;
   }
 
   if (gameState < 1) {
     continue;
   }
 
-  if (isDigit(character)) {
-    numberAcc += character;
-  }
-
   if (character === '|') {
     gameState = 2;
   }
 
-  if ((character === ' ' || character === '\n') && numberAcc.length) {
+  if (isDigit(character)) {
+    numberAcc += character;
+  }
+
+  if ([' ', '\n'].includes(character) && numberAcc.length) {
     if (gameState === 1) {
       luckyNumbers[numberAcc] = true;
-    } else if (gameState === 2 && luckyNumbers[numberAcc]) {
-      gameResult = gameResult === 0 ? 1 : gameResult * 2;
     }
+
+    if (gameState === 2 && luckyNumbers[numberAcc]) {
+      copiedCardOffset += 1;
+      copiedCardIndex = copiedCardOffset + gameIndex;
+      currentCardCopies = games[gameIndex];
+      games.incrementIndex(copiedCardIndex, currentCardCopies)
+      // gameResult = gameResult === 0 ? 1 : gameResult * 2;
+    }
+
     numberAcc = '';
-  }
-  if (character === '\n') {
-    numberAcc = '';
-    gameState = 0;
-    luckyNumbers = {};
-    games.push(gameResult);
+    gameState = character === '\n' ? 0 : gameState;
   }
 }
 
