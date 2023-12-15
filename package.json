@@ -1,0 +1,13 @@
+{
+  "name": "advent-of-code-solutions",
+  "version": "1.0.0",
+  "description": "my solutions for advent-of-code",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+  }
+}
