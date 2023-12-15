@@ -46,7 +46,9 @@ rl.on('line', (line) => {
     seeds = recalibrateSeeds(seeds, sources, map);
     sources = [];
     map = {};
-  } else if (!line.includes('map') && line.length) {
+  }
+
+  if (!line.includes('map') && line.length) {
     const extractor = extractLineNumbers(line);
     const [destination, source, range] = Array.from({ length: 3 }, () => extractor.next().value);
     map[source] = destination;
@@ -55,6 +57,8 @@ rl.on('line', (line) => {
 })
 
 rl.on('close', () => {
+  seeds.sort((a, b) => a - b) && sources.sort((a, b) => a - b);
+  seeds = recalibrateSeeds(seeds, sources, map);
   console.log(seeds[0])
 })
 
