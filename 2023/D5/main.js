@@ -4,7 +4,7 @@ const fs = require('fs');
 const readline = require('readline');
 const fileStream = fs.createReadStream(isTest ? './test.txt' : './input.txt');
 // const BinaryHeap = require("../../../utils/binaryHeap");
-const { extractLineNumbers } = require("../../../utils/helpers");
+const { extractLineNumbers } = require("../../utils/helpers");
 
 const rl = readline.createInterface({
   input: fileStream,
