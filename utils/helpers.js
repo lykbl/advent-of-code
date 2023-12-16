@@ -1,6 +1,6 @@
 const isDigit = (character) => !isNaN(parseInt(character));
 
-function* extractLineNumbers(line, terminationCharacter = null, itemsCount = 1) {
+function* extractLineNumbers(line, terminationCharacter = null, itemsCount = 1, ignoreCharacters = []) {
   let numberAcc = '';
   const numbers = [];
   for (let i = 0; i < line.length; i++) {
@@ -13,7 +13,7 @@ function* extractLineNumbers(line, terminationCharacter = null, itemsCount = 1) 
       numberAcc += character;
     }
 
-    if ((!isDigit(character) || i === line.length - 1) && numberAcc.length) {
+    if ((!isDigit(character) && !ignoreCharacters.includes(character) || i === line.length - 1) && numberAcc.length) {
       numbers.push(parseInt(numberAcc));
       numberAcc = '';
 
