@@ -139,5 +139,4 @@ rl.on('close', () => {
 })
 
 //165788812 answer P1
-
 //1928058 answer p2
