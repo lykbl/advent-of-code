@@ -54,13 +54,25 @@ class Hand {
   toString = () => `${this._hand} ${this._weight} ${this._type} ${this._bid}`;
 }
 
-const hands = [];
+const compareHands = (nodeA, nodeB) => {
+  const handA = nodeA.value;
+  const handB = nodeB.value;
+  if (handA.type() > handB.type()) {
+    return 1;
+  }
+  if (handA.type() < handB.type()) {
+    return -1;
+  }
+
+  return handA.weight() - handB.weight();
+}
+
+const hands = new BinaryHeap(compareHands);
 rs.on('line', (line) => {
   const [hand, bid] = line.split(' ');
   const cardsCountMap = new Map();
   let type = HAND_TYPES['High Card'];
-  let handWeight = 0;
-  let wildCardsCount = 0;
+  let [handWeight, wildCardsCount] = [0, 0];
 
   for (let i = 0; i < hand.length; i++) {
     const card = hand[i];
@@ -96,28 +108,19 @@ rs.on('line', (line) => {
     wildCardsCount--;
   }
 
-  hands.push(new Hand(handWeight, type, bid, hand));
+  hands.insert(new Hand(handWeight, type, bid, hand));
 });
 
 rs.on('close', () => {
-  hands.sort((handA, handB) => {
-    if (handA.type() > handB.type()) {
-      return 1;
-    }
-    if (handA.type() < handB.type()) {
-      return -1;
-    }
-
-    return handA.weight() - handB.weight();
-  });
-
   let totalWinnings = 0;
-  for (let i = 0; i < hands.length; i++) {
-    totalWinnings += (i + 1) * hands[i].bid();
+  let i = 1;
+  while (hands.size()) {
+    totalWinnings += i * hands.extractMinimum().value.bid();
+    i++;
   }
 
   console.log(totalWinnings)
 })
 
-//248836197
-//251195607 correct
+//248836197 p1
+//251195607 p2
