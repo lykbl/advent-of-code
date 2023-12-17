@@ -60,9 +60,9 @@ rs.on('line', (line) => {
   for (let i = 0; i < hand.length; i++) {
     const card = hand[i];
     const cardWeight = CARD_WEIGHTS[card];
-    const cardCount = cardsCountMap.get(card) || 1;
+    const cardCount = cardsCountMap.get(card) + 1 || 1;
 
-    cardsCountMap.set(card, cardCount + 1);
+    cardsCountMap.set(card, cardCount);
 
     if (type === 'High Card' && cardCount === 2) {
       type = 'One Pair';
