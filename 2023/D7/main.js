@@ -8,7 +8,7 @@ const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf8');
 const BinaryHeap = require("../../utils/binaryHeap");
 
 const HAND_TYPES = {
-  'High Card': 1,
+  'High Card': 0,
   'One Pair': 2,
   'Two Pairs': 3,
   'Three of a Kind': 4,
@@ -21,7 +21,8 @@ const CARD_WEIGHTS = {
   'A': 14,
   'K': 13,
   'Q': 12,
-  'J': 11,
+  // 'J': 10,
+  'J': 1,
   'T': 10,
   '9': 9,
   '8': 8,
@@ -39,23 +40,27 @@ const rs = readline.createInterface({
 });
 
 class Hand {
-  constructor(weight, type, bid) {
+  constructor(weight, type, bid, hand) {
     this._weight = weight;
-    this._type = HAND_TYPES[type];
+    this._type = type;
     this._bid = parseInt(bid);
+    this._hand = hand;
   }
 
   weight = () => this._weight;
   type = () => this._type;
   bid = () => this._bid;
+
+  toString = () => `${this._hand} ${this._weight} ${this._type} ${this._bid}`;
 }
 
 const hands = [];
 rs.on('line', (line) => {
   const [hand, bid] = line.split(' ');
   const cardsCountMap = new Map();
-  let type = 'High Card';
+  let type = HAND_TYPES['High Card'];
   let handWeight = 0;
+  let wildCardsCount = 0;
 
   for (let i = 0; i < hand.length; i++) {
     const card = hand[i];
@@ -63,27 +68,36 @@ rs.on('line', (line) => {
     const cardCount = cardsCountMap.get(card) + 1 || 1;
 
     cardsCountMap.set(card, cardCount);
+    handWeight += cardWeight * Math.pow(Object.keys(CARD_WEIGHTS).length + 1, hand.length - i);
 
-    if (type === 'High Card' && cardCount === 2) {
-      type = 'One Pair';
-    } else if (type === 'One Pair' && cardCount === 2) {
-      type = 'Two Pairs';
-    } else if (type === 'One Pair' && cardCount === 3) {
-      type = 'Three of a Kind';
-    } else if ((type === 'Two Pairs' && cardCount === 3) || (type === 'Three of a Kind' && cardCount === 2)) {
-      type = 'Full House';
-    } else if (type === 'Three of a Kind' && cardCount === 4) {
-      type = 'Four of a Kind';
-    } else if (type === 'Four of a Kind' && cardCount === 5) {
-      type = 'Five of a Kind';
+    if (card === 'J') {
+      wildCardsCount++;
+      continue;
     }
 
-    handWeight += cardWeight * Math.pow(Object.keys(CARD_WEIGHTS).length, hand.length - i);
+    if (type === HAND_TYPES['High Card'] && cardCount === 2) {
+      type = HAND_TYPES['One Pair'];
+    } else if (type === HAND_TYPES['One Pair'] && cardCount === 2) {
+      type = HAND_TYPES['Two Pairs'];
+    } else if (type === HAND_TYPES['One Pair'] && cardCount === 3) {
+      type = HAND_TYPES['Three of a Kind'];
+    } else if ((type === HAND_TYPES['Two Pairs'] && cardCount === 3) || (type === HAND_TYPES['Three of a Kind'] && cardCount === 2)) {
+      type = HAND_TYPES['Full House'];
+    } else if (type === HAND_TYPES['Three of a Kind'] && cardCount === 4) {
+      type = HAND_TYPES['Four of a Kind'];
+    } else if (type === HAND_TYPES['Four of a Kind'] && cardCount === 5) {
+      type = HAND_TYPES['Five of a Kind'];
+      wildCardsCount = 0;
+    }
+  }
+
+  while (wildCardsCount) {
+    type = Math.min(type + 2, HAND_TYPES['Five of a Kind'])
+    wildCardsCount--;
   }
 
   hands.push(new Hand(handWeight, type, bid, hand));
 });
-
 
 rs.on('close', () => {
   hands.sort((handA, handB) => {
@@ -102,8 +116,8 @@ rs.on('close', () => {
     totalWinnings += (i + 1) * hands[i].bid();
   }
 
-  // console.log(hands)
   console.log(totalWinnings)
 })
 
 //248836197
+//251195607 correct
