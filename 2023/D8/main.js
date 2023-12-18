@@ -6,10 +6,14 @@ const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf8');
 class DesertMap {
   constructor() {
     this.nodes = new Map();
+    this.startNodes = [];
   }
 
   addNode(key, left, right) {
     this.nodes.set(key, { left, right });
+    if (key[2] === 'A') {
+      this.startNodes.push(key);
+    }
   }
 
   getNode(key) {
@@ -52,6 +56,39 @@ while (currentNode !== finalNode) {
   }
 }
 
-console.log(stepsCount)
+const startingNodes = desertMap.startNodes;
+const cycles = [];
+for (const startNode of startingNodes) {
+  let stepsCount = 0;
+  let i = 0;
+  let currentNode = startNode;
+  while (currentNode[2] !== 'Z') {
+    const { left, right } = desertMap.getNode(currentNode);
+    const nextStep = instructions[i];
+
+    currentNode = nextStep === 'L' ? left : right;
+    i++;
+    stepsCount++;
+
+    if (i >= instructions.length) {
+      i = 0;
+    }
+  }
+  cycles.push(stepsCount);
+}
+
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+// Function to calculate the Least Common Multiple (LCM)
+function lcm(a, b) {
+  return (a * b) / gcd(a, b);
+}
+
+console.log(cycles.reduce((accumulator, currentValue) => lcm(accumulator, currentValue)))
+
+// console.log(stepsCount)
 
 //14429 p1
+//10921547990923 p2
