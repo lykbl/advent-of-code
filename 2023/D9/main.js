@@ -10,44 +10,27 @@ for (const line of lines) {
   const histories = [line.split(' ').map(Number)];
 
   let allZeroes = false
-  let y = 0;
-  let i = histories[y].length - 1;
-  histories[y + 1] = Array.from({ length: i - 1 });
+  let sequenceI = 0;
+  let numberI = histories[sequenceI].length - 1;
+  histories[sequenceI + 1] = Array.from({ length: numberI - 1 })//.from({ length: numberI - 1 });
   while (!allZeroes) {
-    if (i === 0) {
-      y += 1;
-      i = histories[y].length - 1;
-      histories[y + 1] = Array.from({ length: i });
+    if (numberI === 0) {
+      numberI = histories[++sequenceI].length - 1;
+      histories[sequenceI + 1] = Array.from({ length: numberI });
+      allZeroes = true;
     }
 
-    const diff = histories[y][i] - histories[y][i - 1];
-    histories[y + 1][i - 1] = diff;
-    allZeroes = histories[y + 1].every(n => n === 0);
-
-    i--;
+    histories[sequenceI + 1][numberI - 1] = histories[sequenceI][numberI] - histories[sequenceI][numberI - 1];
+    allZeroes = histories[sequenceI + 1].every(n => n === 0); // :(
+    numberI--;
   }
 
-  for (y = histories.length - 1; y >= 0; y--) {
-    if (y === histories.length - 1 ) {
-      histories[y].push(0)
-    } else {
-      const rightMostValue = histories[y][histories[y].length - 1];
-      const belowValue = histories[y + 1][histories[y + 1].length - 1];
-      histories[y].push(rightMostValue + belowValue);
-    }
+  let [leftAdded, rightAdded] = [0, 0];
+  for (sequenceI = histories.length - 2; sequenceI >= 0; sequenceI--) {
+    const [leftMostValue, rightMostValue] = [histories[sequenceI][0], histories[sequenceI][histories[sequenceI].length - 1]];
+    rightAdded += rightMostValue;
+    leftAdded = leftMostValue - leftAdded;
   }
-  const rightAdded = histories[0][histories[0].length - 1];
-
-  for (y = histories.length - 1; y >= 0; y--) {
-    if (y === histories.length - 1) {
-      histories[y].unshift(0)
-    } else {
-      const leftMostValue = histories[y][0];
-      const belowValue = histories[y + 1][0];
-      histories[y].unshift(leftMostValue - belowValue);
-    }
-  }
-  const leftAdded = histories[0][0];
 
   result += rightAdded;
   result2 += leftAdded;
@@ -56,3 +39,4 @@ for (const line of lines) {
 console.log(result)
 console.log(result2)
 // 1789635132 p1
+// 913 p2
