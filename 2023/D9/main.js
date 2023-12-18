@@ -5,6 +5,7 @@ const input = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf8');
 const lines = input.split('\n');
 
 let result = 0;
+let result2 = 0;
 for (const line of lines) {
   const histories = [line.split(' ').map(Number)];
 
@@ -30,15 +31,28 @@ for (const line of lines) {
     if (y === histories.length - 1 ) {
       histories[y].push(0)
     } else {
-      const leftMostValue = histories[y][histories[y].length - 1];
+      const rightMostValue = histories[y][histories[y].length - 1];
       const belowValue = histories[y + 1][histories[y + 1].length - 1];
-      histories[y].push(leftMostValue + belowValue);
+      histories[y].push(rightMostValue + belowValue);
     }
   }
-  const lastAdded = histories[0][histories[0].length - 1];
+  const rightAdded = histories[0][histories[0].length - 1];
 
-  result += lastAdded;
+  for (y = histories.length - 1; y >= 0; y--) {
+    if (y === histories.length - 1) {
+      histories[y].unshift(0)
+    } else {
+      const leftMostValue = histories[y][0];
+      const belowValue = histories[y + 1][0];
+      histories[y].unshift(leftMostValue - belowValue);
+    }
+  }
+  const leftAdded = histories[0][0];
+
+  result += rightAdded;
+  result2 += leftAdded;
 }
 
 console.log(result)
+console.log(result2)
 // 1789635132 p1
