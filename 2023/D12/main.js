@@ -73,7 +73,6 @@ for (const arrangement of springArrangements.split('\n')) {
     continue;
   }
 
-  // springSizes = springSizes.split(',').map(Number);
   springSizes = Array(5).fill(springSizes).join(',').split(',').map(Number);
   schema = Array(5).fill(schema).join('?');
   console.log(schema, springSizes)
