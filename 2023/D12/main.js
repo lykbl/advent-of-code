@@ -18,10 +18,10 @@ const springArrangedAt = (schema, springStart, springSize) => {
 
   return -1;
 }
-function calculateArrangements(schema, springSizes, basePath = '') {
+function calculateArrangements(schema, springSizes, basePath = '', memory = {}) {
   if (springSizes.length === 0) {
     if (schema.indexOf('#') === -1) {
-      console.log(basePath.replaceAll('?', '.'))
+      // console.log(basePath.replaceAll('?', '.'))
       return 1;
     } else {
       return 0;
@@ -50,9 +50,16 @@ function calculateArrangements(schema, springSizes, basePath = '') {
     toAdd[springEnd] = remainingSprings.length ? '.' : '';
     toAdd = toAdd.join('').replaceAll('?', '.');
 
-    let subResult = calculateArrangements(
-      remainingSchema, remainingSprings, basePath.replaceAll('?', '.') + toAdd
-    );
+    const memoryHash = (remainingSchema + JSON.stringify(remainingSprings));
+    let subResult;
+    if (memory[memoryHash] !== undefined) {
+      subResult = memory[memoryHash];
+    } else {
+      subResult = calculateArrangements(
+        remainingSchema, remainingSprings, basePath.replaceAll('?', '.') + toAdd, memory
+      );
+      memory[memoryHash] = subResult;
+    }
     currentArrangements += subResult;
   }
 
@@ -65,15 +72,17 @@ for (const arrangement of springArrangements.split('\n')) {
   if (springSizes === undefined) {
     continue;
   }
-  springSizes = springSizes.split(',').map(Number);
+
+  // springSizes = springSizes.split(',').map(Number);
+  springSizes = Array(5).fill(springSizes).join(',').split(',').map(Number);
+  schema = Array(5).fill(schema).join('?');
   console.log(schema, springSizes)
   let temp = calculateArrangements(schema, springSizes);
   console.log(temp)
   result += temp;
 }
 
-//7416 too high
-//7252 too high
-//7862 too high
+//7195 PERFECT
+//33992866292225
 
 console.log(result)
