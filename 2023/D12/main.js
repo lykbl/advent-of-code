@@ -3,85 +3,66 @@ const isTest = args.includes('--test');
 const fs = require('fs');
 const springArrangements = fs.readFileSync(isTest ? './test.txt' : './input.txt', 'utf8');
 
-const springArrangedAt = (schema, springStart, springSize) => {
-  let springEnd = springStart;
-  while (springEnd < springStart + springSize) {
-    if (schema[springEnd] === '.') {
-      return -1;
-    }
-    springEnd++;
+const findSpringEnd = (schema, springSize) => {
+  const closestDot = schema.indexOf('.');
+  if (closestDot >= 0 && closestDot < springSize) {
+    return -1;
   }
 
-  if ((['.', '?'].includes(schema[springEnd]) || springEnd === schema.length)) {
-    return springEnd;
-  }
-
-  return -1;
+  const isEndValid =
+    ['.', '?'].includes(schema[springSize])
+    || springSize === schema.length
+  ;
+  return isEndValid ? springSize : -1;
 }
-function calculateArrangements(schema, springSizes, basePath = '', memory = {}) {
+
+function calculateArrangements(schema, springSizes, memory = new Map()) {
   if (springSizes.length === 0) {
-    if (schema.indexOf('#') === -1) {
-      // console.log(basePath.replaceAll('?', '.'))
-      return 1;
-    } else {
-      return 0;
-    }
+    return schema.indexOf('#') === -1 ? 1 : 0;
   }
 
-  let currentSpringSize = springSizes[0];
+  const currentSpringSize = springSizes[0];
   let currentArrangements = 0;
   let springBank = currentSpringSize;
 
   for (let i = 0; i < schema.length; i++) {
     if (springBank < currentSpringSize) {
-      continue;
+      break;
     }
-    let springEnd = springArrangedAt(schema, i, springBank)
+    const springEnd = findSpringEnd(schema.slice(i), springBank)
     if (schema[i] === '#') {
       springBank -= 1;
     }
     if (springEnd === -1) {
       continue;
     }
+
     const remainingSprings = springSizes.slice(1);
-    const remainingSchema = schema.slice(springEnd + 1); //slice is stupid
-
-    let toAdd = schema.slice(0, springEnd).split('').fill('#', i, springEnd);
-    toAdd[springEnd] = remainingSprings.length ? '.' : '';
-    toAdd = toAdd.join('').replaceAll('?', '.');
-
+    const remainingSchema = schema.slice(springEnd + i + 1); //slice is stupid
     const memoryHash = (remainingSchema + JSON.stringify(remainingSprings));
-    let subResult;
-    if (memory[memoryHash] !== undefined) {
-      subResult = memory[memoryHash];
-    } else {
-      subResult = calculateArrangements(
-        remainingSchema, remainingSprings, basePath.replaceAll('?', '.') + toAdd, memory
+    if (memory[memoryHash] === undefined) {
+      memory[memoryHash] = calculateArrangements(
+        remainingSchema, remainingSprings, memory
       );
-      memory[memoryHash] = subResult;
     }
-    currentArrangements += subResult;
+
+    currentArrangements += memory[memoryHash];
   }
 
   return currentArrangements;
 }
 
-let result = 0;
+let [result, expandedResult] = [0, 0];
 for (const arrangement of springArrangements.split('\n')) {
   let [schema, springSizes] = arrangement.split(' ');
-  if (springSizes === undefined) {
-    continue;
-  }
+  result += calculateArrangements(schema, springSizes.split(',').map(Number));
 
-  springSizes = Array(5).fill(springSizes).join(',').split(',').map(Number);
-  schema = Array(5).fill(schema).join('?');
-  console.log(schema, springSizes)
-  let temp = calculateArrangements(schema, springSizes);
-  console.log(temp)
-  result += temp;
+  const expandedSpringSizes = Array(5).fill(springSizes).join(',').split(',').map(Number);
+  const expandedSchema = Array(5).fill(schema).join('?');
+  expandedResult += calculateArrangements(expandedSchema, expandedSpringSizes);
 }
 
-//7195 PERFECT
-//33992866292225
-
-console.log(result)
+//7195 p1
+//33992866292225 p2
+console.log('P1: ', result)
+console.log('P2: ', expandedResult)
