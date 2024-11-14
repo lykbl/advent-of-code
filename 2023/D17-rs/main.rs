@@ -51,12 +51,10 @@ where P: AsRef<Path>
 
 fn render_graph(
     graph: &Vec<Vec<usize>>,
-    path: &HashSet<usize>,
+    path: &Vec<usize>,
     current_node: &usize,
 ) {
-    // clear_console();
-    return;
-    println!("------------------------------------------");
+    clear_console();
     for (x, row) in graph.iter().enumerate() {
         for (y, heat_loss) in row.iter().enumerate() {
             let cell_index = y * row.len() + x;
@@ -68,7 +66,7 @@ fn render_graph(
         }
         println!();
     }
-    sleep(Duration::from_millis(5));
+    sleep(Duration::from_millis(100));
 }
 
 fn main() {
@@ -78,7 +76,6 @@ fn main() {
         &heat_loss_map_2d,
         &heat_loss_graph,
         0, heat_loss_graph.len() - 1,
-        // Some(render_graph),
         render_graph,
     ) {
         println!("Result: {}", shortest);
