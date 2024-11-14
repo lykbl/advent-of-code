@@ -1,0 +1,12 @@
+[package]
+name = "D17-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.13.0"
+typed-arena = "2.0.2"
+
+[[bin]]
+name = "D17-rs"
+path = "graph.rs"
