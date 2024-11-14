@@ -1,121 +1,53 @@
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use std::fs::File;
+use std::io;
+use std::io::{BufRead, BufReader};
+use std::path::Path;
+use graph::Edge;
+use crate::graph::shortest_path;
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-struct State {
-    cost: usize,
-    position: usize,
-}
+mod graph;
 
-// The priority queue depends on `Ord`.
-// Explicitly implement the trait so the queue becomes a min-heap
-// instead of a max-heap.
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        // Notice that we flip the ordering on costs.
-        // In case of a tie we compare positions - this step is necessary
-        // to make implementations of `PartialEq` and `Ord` consistent.
-        other.cost.cmp(&self.cost)
-            .then_with(|| self.position.cmp(&other.position))
-    }
-}
+fn graph_from_file<P>(path: P) -> Result<Vec<Vec<Edge>>, io::Error>
+where P: AsRef<Path>
+{
+    let lines = match File::open(path) {
+        Ok(file)  => BufReader::new(file).lines(),
+        Err(err) => return Err(err),
+    };
 
-// `PartialOrd` needs to be implemented as well.
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
+    let heat_loss_map_2d: Vec<Vec<usize>> = lines
+        .flatten()
+        .map(|line| line.chars().map(|c| c.to_digit(10).unwrap() as usize).collect())
+        .collect();
 
-// Each node is represented as a `usize`, for a shorter implementation.
-struct Edge {
-    node: usize,
-    cost: usize,
-}
-
-// Dijkstra's shortest path algorithm.
-
-// Start at `start` and use `dist` to track the current shortest distance
-// to each node. This implementation isn't memory-efficient as it may leave duplicate
-// nodes in the queue. It also uses `usize::MAX` as a sentinel value,
-// for a simpler implementation.
-fn shortest_path(adj_list: &Vec<Vec<Edge>>, start: usize, goal: usize) -> Option<usize> {
-    // dist[node] = current shortest distance from `start` to `node`
-    let mut dist: Vec<_> = (0..adj_list.len()).map(|_| usize::MAX).collect();
-
-    let mut heap = BinaryHeap::new();
-
-    // We're at `start`, with a zero cost
-    dist[start] = 0;
-    heap.push(State { cost: 0, position: start });
-
-    // Examine the frontier with lower cost nodes first (min-heap)
-    while let Some(State { cost, position }) = heap.pop() {
-        // Alternatively we could have continued to find all shortest paths
-        if position == goal { return Some(cost); }
-
-        // Important as we may have already found a better way
-        if cost > dist[position] { continue; }
-
-        // For each node we can reach, see if we can find a way with
-        // a lower cost going through this node
-        for edge in &adj_list[position] {
-            let next = State { cost: cost + edge.cost, position: edge.node };
-
-            // If so, add it to the frontier and continue
-            if next.cost < dist[next.position] {
-                heap.push(next);
-                // Relaxation, we have now found a better way
-                dist[next.position] = next.cost;
+    let height = heat_loss_map_2d.len();
+    let width = heat_loss_map_2d.first().unwrap().len();
+    let mut heat_loss_graph: Vec<Vec<Edge>> = vec![];
+    for (y, row) in heat_loss_map_2d.iter().enumerate() {
+        for x in 0..row.len() {
+            heat_loss_graph.push(vec![]);
+            if x > 0 {
+                heat_loss_graph[y * width + x].push(Edge::new(y * width + x - 1, heat_loss_map_2d[y][x - 1]));
+            }
+            if x < width - 1 {
+                heat_loss_graph[y * width + x].push(Edge::new(y * width + x + 1, heat_loss_map_2d[y][x + 1]))
+            }
+            if y > 0 {
+                heat_loss_graph[y * width + x].push(Edge::new((y - 1) * width + x, heat_loss_map_2d[y - 1][x]));
+            }
+            if y < height - 1 {
+                heat_loss_graph[y * width + x].push(Edge::new((y + 1) * width + x, heat_loss_map_2d[y + 1][x]));
             }
         }
     }
 
-    // Goal not reachable
-    None
+    Ok(heat_loss_graph)
 }
 
 fn main() {
-    // This is the directed graph we're going to use.
-    // The node numbers correspond to the different states,
-    // and the edge weights symbolize the cost of moving
-    // from one node to another.
-    // Note that the edges are one-way.
-    //
-    //                  7
-    //          +-----------------+
-    //          |                 |
-    //          v   1        2    |  2
-    //          0 -----> 1 -----> 3 ---> 4
-    //          |        ^        ^      ^
-    //          |        | 1      |      |
-    //          |        |        | 3    | 1
-    //          +------> 2 -------+      |
-    //           10      |               |
-    //                   +---------------+
-    //
-    // The graph is represented as an adjacency list where each index,
-    // corresponding to a node value, has a list of outgoing edges.
-    // Chosen for its efficiency.
-    let graph = vec![
-        // Node 0
-        vec![Edge { node: 2, cost: 10 },
-             Edge { node: 1, cost: 1 }],
-        // Node 1
-        vec![Edge { node: 3, cost: 2 }],
-        // Node 2
-        vec![Edge { node: 1, cost: 1 },
-             Edge { node: 3, cost: 3 },
-             Edge { node: 4, cost: 1 }],
-        // Node 3
-        vec![Edge { node: 0, cost: 7 },
-             Edge { node: 4, cost: 2 }],
-        // Node 4
-        vec![]];
+    let heat_loss_graph = graph_from_file(Path::new("debug.txt")).unwrap();
 
-    assert_eq!(shortest_path(&graph, 0, 1), Some(1));
-    assert_eq!(shortest_path(&graph, 0, 3), Some(3));
-    assert_eq!(shortest_path(&graph, 3, 0), Some(7));
-    assert_eq!(shortest_path(&graph, 0, 4), Some(5));
-    assert_eq!(shortest_path(&graph, 4, 0), None);
+    if let Some(shortest) = shortest_path(&heat_loss_graph, 0, heat_loss_graph.len() - 1) {
+        println!("Result: {}", shortest);
+    }
 }
