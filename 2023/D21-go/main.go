@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	// "fmt"
 	"log"
 	"os"
@@ -57,6 +58,8 @@ type Step struct {
   stepsLeft int
 }
 
+// func (g *Garden) Ge
+
 func (g *Garden) CountPossiblePlots(stepsToTake int) int {
   possiblePlots := 1
   moveDirections := [][2]int{{1,0},{-1,0},{0,1},{0,-1}}
@@ -65,7 +68,11 @@ func (g *Garden) CountPossiblePlots(stepsToTake int) int {
     {position: g.elfPosition, stepsLeft: stepsToTake},
   }
 
+  log.Print(fmt.Printf("%d", 5))
+  // visitedPositions := make(map[string]bool)
   g.grid[g.elfPosition[1]][g.elfPosition[0]] = VisitedRune
+  // cellKey, err := fmt.Printf("%d_%d", g.elfPosition[0], g.elfPosition[1])
+  // visitedPositions[cellKey] = true
   for len(cellsToCheck) > 0 {
     currentStep := cellsToCheck[0]
     cellsToCheck = cellsToCheck[1:]
@@ -107,7 +114,7 @@ func main() {
   
   var stepsToTake int
   if fileName == "test.txt" {
-    stepsToTake = 6
+    stepsToTake = 100
   } else {
     stepsToTake = 64
   }
