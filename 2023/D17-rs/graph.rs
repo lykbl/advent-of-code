@@ -94,7 +94,6 @@ pub fn shortest_path (
     goal: usize,
     render_callback: fn(&Vec<Vec<usize>>, &Vec<usize>, &usize),
 ) -> Option<usize>
-// where F: OptionalCb
 {
     let mut dist: Vec<usize> = (0..adj_list.len()).map(|_| usize::MAX).collect();
     let mut heap = BinaryHeap::new();
@@ -110,24 +109,18 @@ pub fn shortest_path (
 
         if position == goal && steps_taken >= MIN_STEPS {
             render_callback(original, &path, &position);
-            // println!("FOUND IT: position: {}", position);
-            println!("Path: {:?}", path);
-            // sleep(Duration::from_secs(10));
 
             return Some(cost);
         }
 
         for edge in &adj_list[position] {
             if steps_taken < MIN_STEPS && last_dir.is_some_and(|d| edge.direction != d) {
-                // render_callback(original, &path, &position);
                 continue;
             }
             if steps_taken >= MAX_STEPS && last_dir.is_some_and(|d| edge.direction == d) {
-                // render_callback(original, &path, &position);
                 continue;
             }
             if last_dir.is_some_and(|d| edge.direction.is_opposite(d)) {
-                // render_callback(original, &path, &position);
                 continue;
             }
 

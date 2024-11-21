@@ -2,7 +2,10 @@
 test*
 README.md
 input*
+debug*
 node_modules/*
 playground.js
 2023/D13/*
 .virtualenvs/*
+!../tests.rs
+2023/*/target/
