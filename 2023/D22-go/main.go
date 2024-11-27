@@ -7,8 +7,9 @@ import (
 	"log"
 	"os"
 	"slices"
-
+	"container/list"
 	// "slices"
+  // 	"container/list"
 	"strconv"
 	"strings"
 )
@@ -129,18 +130,55 @@ func main() {
   log.Printf("Supported: %v", v_supports_k)
 
   result := 0
-  for i := range bricks {
-    all := true
-    for j := range k_supports_v[i] {
-      if len(v_supports_k[j]) < 2 {
-        all = false
-      }
-    }
+  // for i := range bricks {
+  //   all := true
+  //   for j := range k_supports_v[i] {
+  //     if len(v_supports_k[j]) < 2 {
+  //       all = false
+  //     }
+  //   }
+  //
+    // if all {
+      // result++
+  //   }
+  // }
 
-    if all {
-      result++
-    }
+	for i := 0; i < len(bricks); i++ {
+		q := list.New()
+		for j := range k_supports_v[i] {
+			if len(v_supports_k[j]) == 1 {
+				q.PushBack(j)
+			}
+		}
+
+		falling := make(map[int]struct{})
+		for e := q.Front(); e != nil; e = e.Next() {
+			falling[e.Value.(int)] = struct{}{}
+		}
+		falling[i] = struct{}{}
+
+		for q.Len() > 0 {
+			front := q.Front()
+			j := front.Value.(int)
+			q.Remove(front)
+
+			for k := range k_supports_v[j] {
+				if _, found := falling[k]; !found {
+					fallingCount := 0
+					for support := range v_supports_k[k] {
+						if _, exists := falling[support]; exists {
+							fallingCount++
+						}
+					}
+					if fallingCount == len(v_supports_k[k]) {
+						q.PushBack(k)
+						falling[k] = struct{}{}
+					}
+				}
+			}
+		}
+
+		result += len(falling) - 1
   }
-
   log.Printf("Result: %d", result)
 }
