@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	// "strconv"
-	// "strings"
+	"strconv"
+	"strings"
 )
 
 type Point struct {
@@ -89,10 +89,12 @@ func main() {
 
         graph[current.FromNodeKey][newNodeKey] = current.StepsTaken + 1
         if _, exists := graph[newNodeKey]; exists {
+          graph[newNodeKey][current.FromNodeKey] = current.StepsTaken + 1
           continue
         }
 
         graph[newNodeKey] = make(map[string]int, 0)
+        graph[newNodeKey][current.FromNodeKey] = current.StepsTaken + 1
         for _, nextTile := range []Point {
           {x: newNodeStart.x + 1, y: newNodeStart.y},
           {x: newNodeStart.x, y: newNodeStart.y + 1},
@@ -116,23 +118,49 @@ func main() {
       }
   }
 
-  nodesQueue := []struct{CurrentNodeKey string; StepsTaken int}{
-   {CurrentNodeKey: "1_0", StepsTaken: 0},
+  for nodeKey, neighbours := range graph {
+    result := strings.Split(nodeKey, "_")
+    x, _ := strconv.Atoi(result[0])
+    y, _ := strconv.Atoi(result[1])
+
+    fmt.Printf("%d %d: [", y + 1, x + 1)
+    for neighbourKey := range neighbours {
+      result := strings.Split(neighbourKey, "_")
+      nX, _ := strconv.Atoi(result[0])
+      nY, _ := strconv.Atoi(result[1])
+      fmt.Printf("%d %d, ", nY + 1, nX + 1)
+    }
+    fmt.Print("]\n")
+  }
+
+  nodesQueue := []struct{CurrentNodeKey string; StepsTaken int; VisitedNodes map[string]struct{}}{
+    {CurrentNodeKey: "1_0", StepsTaken: 0, VisitedNodes: make(map[string]struct{})},
   }
   
   maxSteps := 0
   for len(nodesQueue) > 0 {
     currentStep := nodesQueue[len(nodesQueue) - 1]
     nodesQueue = nodesQueue[0:len(nodesQueue) - 1]
+    // log.Printf("New vis: %v", currentStep.VisitedNodes)
 
     if currentStep.CurrentNodeKey == fmt.Sprintf("%d_%d", targetCell.x, targetCell.y) {
       maxSteps = max(maxSteps, currentStep.StepsTaken)
     }
 
+    newVisited := make(map[string]struct{})
+    for t := range currentStep.VisitedNodes {
+      newVisited[t] = struct{}{}
+    }
+    newVisited[currentStep.CurrentNodeKey] = struct{}{}
     for nextNodeKey, stepsToTake := range graph[currentStep.CurrentNodeKey] {
-      nodesQueue = append(nodesQueue, struct{CurrentNodeKey string; StepsTaken int}{
+      if _, alreadyVisited := newVisited[nextNodeKey]; alreadyVisited {
+        continue
+      }
+
+      nodesQueue = append(nodesQueue, struct{CurrentNodeKey string; StepsTaken int; VisitedNodes map[string]struct{}}{
         CurrentNodeKey: nextNodeKey,
         StepsTaken: currentStep.StepsTaken + stepsToTake + 1,
+        VisitedNodes: newVisited,
       })
     }
   }
