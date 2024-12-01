@@ -20,14 +20,24 @@ func main() {
 
   defer file.Close()
 
-  scanner := bufio.NewScanner(file)
+  // scanner := bufio.NewScanner(file)
+  reader := bufio.NewReader(file)
 
   listLeft := make([]int, 0)
   listRight := make([]int, 0)
 
   occMap := make(map[int]int, 0)
-  for scanner.Scan() {
-    line := scanner.Text()
+  // for scanner.Scan() {
+  //   line := scanner.Text()
+  for {
+    lineBytes, _, err := reader.ReadLine()
+    if err != nil {
+      if err.Error() != "EOF" {
+        log.Printf("ERR: %v", err)
+      }
+      break
+    }
+    line := string(lineBytes)
 
     result := strings.Split(line, "   ")
     if len(result) > 2 {
@@ -42,9 +52,9 @@ func main() {
     occMap[right] += 1
   }
 
-  if scanner.Err() != nil {
-    log.Fatalf("Scan failed, %v", scanner.Err())
-  }
+  // if scanner.Err() != nil {
+  //   log.Fatalf("Scan failed, %v", scanner.Err())
+  // }
 
   slices.Sort(listLeft)
   slices.Sort(listRight)

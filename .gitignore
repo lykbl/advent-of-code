@@ -3,6 +3,7 @@ test*
 README.md
 input*
 debug*
+*.txt
 node_modules/*
 playground.js
 2023/D13/*
