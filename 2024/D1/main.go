@@ -25,6 +25,7 @@ func main() {
   listLeft := make([]int, 0)
   listRight := make([]int, 0)
 
+  occMap := make(map[int]int, 0)
   for scanner.Scan() {
     line := scanner.Text()
 
@@ -38,6 +39,7 @@ func main() {
 
     listLeft = append(listLeft, left)
     listRight = append(listRight, right)
+    occMap[right] += 1
   }
 
   if scanner.Err() != nil {
@@ -52,4 +54,10 @@ func main() {
     p1 += int(math.Abs(float64(listRight[i] - listLeft[i])))
   }
   log.Printf("P1: %d", p1)
+
+  p2 := 0
+  for _, i := range listLeft {
+    p2 += i * occMap[i]
+  }
+  log.Printf("Answer: %d", p2)
 }
