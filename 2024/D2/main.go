@@ -20,7 +20,7 @@ func main() {
 
   scanner := bufio.NewScanner(file)
 
-  p1 := 0
+  result := 0
   minChange := 1
   maxChange := 3
   for scanner.Scan() {
@@ -37,22 +37,30 @@ func main() {
       levels[i] = level
     }
 
-    lastDiff := levels[0] - levels[1]
-    isValid := levels[0] != levels[1]
-    for i := 0; i < len(levels) - 1 && isValid; i++ {
-      currDif := levels[i] - levels[i + 1]
+    for y := 0; y < len(levels); y++ {
+      lastDiff := 0
+      isValid := true
 
-      if math.Abs(float64(currDif)) < float64(minChange) || math.Abs(float64(currDif)) > float64(maxChange) || currDif ^ lastDiff < 0 {
-        isValid = false
+      newLevels := make([]int, 0, len(levels)-1)
+      newLevels = append(newLevels, levels[:y]...)
+      newLevels = append(newLevels, levels[y+1:]...)
+
+      for i := 0; i < len(newLevels) - 1 && isValid; i++ {
+        currDif := newLevels[i] - newLevels[i + 1]
+
+        if math.Abs(float64(currDif)) < float64(minChange) || math.Abs(float64(currDif)) > float64(maxChange) || (currDif > 0 && lastDiff < 0 || currDif < 0 && lastDiff > 0) {
+            isValid = false
+        }
+
+        lastDiff = currDif
       }
 
-      lastDiff = currDif
-    }
-
-    if isValid {
-      p1++
+      if isValid {
+        result++
+        break
+      }
     }
   }
 
-  log.Printf("Result: %d", p1)
+  log.Printf("Result: %d", result)
 }
