@@ -15,15 +15,27 @@ func main() {
   scanner := bufio.NewScanner(file)
 
   result := 0
+  lastCommand := true
   for scanner.Scan() {
     line := scanner.Text()
-	  re := regexp.MustCompile(`mul\((\d{1,}),(\d{1,})\)`)
+	  re := regexp.MustCompile(`mul\(\d{1,},\d{1,}\)|(do(?:n't)?)`)
     matches := re.FindAllStringSubmatch(line, -1)
 
-    for _, groups := range matches {
-      a, _ := strconv.Atoi(strings.TrimSpace(groups[1]))
-      b, _ := strconv.Atoi(strings.TrimSpace(groups[2]))
-      result += a * b
+    for _, match := range matches {
+      if strings.Contains(match[0], "don't") {
+        lastCommand = false
+      } else if (strings.Contains(match[0], "do")) {
+        lastCommand = true
+      } else {
+        if !lastCommand {
+          continue
+        }
+
+        numbersParts := strings.Split(match[0][4:len(match[0]) - 1], ",")
+        a, _ := strconv.Atoi(strings.TrimSpace(numbersParts[0]))
+        b, _ := strconv.Atoi(strings.TrimSpace(numbersParts[1]))
+        result += a * b
+      }
     }
   }
 
