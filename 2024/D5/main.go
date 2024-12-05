@@ -55,7 +55,7 @@ func main() {
     line := scanner.Text()
     pagesString := strings.Split(line, ",")
 
-    currentUpdates := []int{}
+    currentPages := []int{}
     ruleChanged := false
     for _, pageString := range pagesString {
       page, err := strconv.Atoi(strings.TrimSpace(pageString))
@@ -63,25 +63,25 @@ func main() {
         log.Fatal("Atoi failed")
       }
       pagePrintRules, hasRules := pageRules[page]
-      currentUpdates = append(currentUpdates, page)
-      if hasRules == false || (*pagePrintRules).Intersect(mapset.NewSet(currentUpdates...)).IsEmpty() {
+      currentPages = append(currentPages, page)
+      if hasRules == false {
         continue
       }
 
-      tmpUpdates := currentUpdates
+      pagesToCheck := currentPages
       moved := 0
-      ruleChanged = true
-      for !(*pagePrintRules).Intersect(mapset.NewSet(tmpUpdates...)).IsEmpty() {
-        currentUpdates[len(currentUpdates) - 1 - moved], currentUpdates[len(currentUpdates) - 2 - moved] = currentUpdates[len(currentUpdates) - 2 - moved], currentUpdates[len(currentUpdates) - 1 - moved]
+      for !(*pagePrintRules).Intersect(mapset.NewSet(pagesToCheck...)).IsEmpty() {
+        ruleChanged = true
+        currentPages[len(currentPages) - 1 - moved], currentPages[len(currentPages) - 2 - moved] = currentPages[len(currentPages) - 2 - moved], currentPages[len(currentPages) - 1 - moved]
+        pagesToCheck = pagesToCheck[:len(pagesToCheck) - 1]
         moved++
-        tmpUpdates = tmpUpdates[:len(tmpUpdates) - 1]
       }
     }
 
     if ruleChanged {
-      p2 += currentUpdates[int(math.Ceil(float64(len(currentUpdates) - 1) / 2))]
+      p2 += currentPages[int(math.Ceil(float64(len(currentPages) - 1) / 2))]
     } else {
-      p1 += currentUpdates[int(math.Ceil(float64(len(currentUpdates) - 1) / 2))]
+      p1 += currentPages[int(math.Ceil(float64(len(currentPages) - 1) / 2))]
     }
   }
 
