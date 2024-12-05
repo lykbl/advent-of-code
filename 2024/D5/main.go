@@ -11,12 +11,6 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 )
 
-type READ_MODE int
-const (
-  RULES_MODE = 0
-  UPDATES_MODE = 1
-)
-
 func main() {
   // file, err := os.Open("test.txt")
   file, err := os.Open("input.txt")
@@ -25,37 +19,33 @@ func main() {
   }
 
   scanner := bufio.NewScanner(file)
-  mode := 0
   pageRules := make(map[int]*mapset.Set[int], 0)
   log.Println("Loading rules...")
   for scanner.Scan() {
     line := scanner.Text()
     if strings.TrimSpace(line) == "" {
-      mode = UPDATES_MODE
       break
     }
 
-    if mode == RULES_MODE {
-      rulesParts := strings.Split(line, "|")
-      if len(rulesParts) > 2 {
-        log.Fatal("Unsupported format")
-      }
+    rulesParts := strings.Split(line, "|")
+    if len(rulesParts) > 2 {
+      log.Fatal("Unsupported format")
+    }
 
-      before, err := strconv.Atoi(rulesParts[0])
-      if err != nil {
-        log.Fatal("Atoi failed")
-      }
-      after, err := strconv.Atoi(rulesParts[1])
-      if err != nil {
-        log.Fatal("Atoi failed")
-      }
+    before, err := strconv.Atoi(rulesParts[0])
+    if err != nil {
+      log.Fatal("Atoi failed")
+    }
+    after, err := strconv.Atoi(rulesParts[1])
+    if err != nil {
+      log.Fatal("Atoi failed")
+    }
 
-      if currentRules, exists := pageRules[before]; exists {
-        (*currentRules).Add(after)
-      } else {
-        rules := mapset.NewSet(after)
-        pageRules[before] = &rules
-      }
+    if currentRules, exists := pageRules[before]; exists {
+      (*currentRules).Add(after)
+    } else {
+      rules := mapset.NewSet(after)
+      pageRules[before] = &rules
     }
   }
   log.Println("Loading updates...")
