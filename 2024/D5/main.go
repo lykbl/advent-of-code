@@ -50,36 +50,41 @@ func main() {
   }
   log.Println("Loading updates...")
   p1 := 0
+  p2 := 0
   for scanner.Scan() {
     line := scanner.Text()
     pagesString := strings.Split(line, ",")
 
-    updateRules := mapset.NewSet[int]()
-    ruleValid := true
+    currentUpdates := []int{}
+    ruleChanged := false
     for _, pageString := range pagesString {
       page, err := strconv.Atoi(strings.TrimSpace(pageString))
       if err != nil {
         log.Fatal("Atoi failed")
       }
       pagePrintRules, hasRules := pageRules[page]
-      if hasRules && !updateRules.Intersect(*pagePrintRules).IsEmpty() {
-        log.Printf("Updates invalid: %s", line)
-        ruleValid = false
-        break
+      currentUpdates = append(currentUpdates, page)
+      if hasRules == false || (*pagePrintRules).Intersect(mapset.NewSet(currentUpdates...)).IsEmpty() {
+        continue
       }
 
-      updateRules.Add(page)
+      tmpUpdates := currentUpdates
+      moved := 0
+      ruleChanged = true
+      for !(*pagePrintRules).Intersect(mapset.NewSet(tmpUpdates...)).IsEmpty() {
+        currentUpdates[len(currentUpdates) - 1 - moved], currentUpdates[len(currentUpdates) - 2 - moved] = currentUpdates[len(currentUpdates) - 2 - moved], currentUpdates[len(currentUpdates) - 1 - moved]
+        moved++
+        tmpUpdates = tmpUpdates[:len(tmpUpdates) - 1]
+      }
     }
 
-    if ruleValid {
-      middlePageString := pagesString[int(math.Ceil(float64(len(pagesString) - 1) / 2))]
-      middlePage, err := strconv.Atoi(middlePageString)
-      if err != nil {
-        log.Fatal("Atoi failed (middlePage)")
-      }
-      p1 += middlePage
+    if ruleChanged {
+      p2 += currentUpdates[int(math.Ceil(float64(len(currentUpdates) - 1) / 2))]
+    } else {
+      p1 += currentUpdates[int(math.Ceil(float64(len(currentUpdates) - 1) / 2))]
     }
   }
 
   log.Printf("P1: %d", p1)
+  log.Printf("P2: %d", p2)
 }
