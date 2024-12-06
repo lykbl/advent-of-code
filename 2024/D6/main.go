@@ -52,8 +52,8 @@ func main() {
   currentPos := guard.pos
   visitedCells := make(map[string]struct{})
   visitedCells[fmt.Sprintf("%d_%d", guard.pos.y, guard.pos.x)] = struct{}{}
-  // loopRules := make(map[string]struct{})
-  // wallCount := 3
+
+  loopCells := make(map[string]struct{})
   for {
     var nextPos Vec2
     switch currentDir {
@@ -75,7 +75,7 @@ func main() {
 
     nextTile := grid[nextPos.y][nextPos.x]
     nextTileKey := fmt.Sprintf("%d_%d", nextPos.y, nextPos.x)
-    log.Printf("Next: %c (%d_%d)", nextTile, nextPos.y, nextPos.x)
+    // log.Printf("Next: %c (%d_%d)", nextTile, nextPos.y, nextPos.x)
     if nextTile == '.' {
       if _, alreadyVisited := visitedCells[nextTileKey]; !alreadyVisited {
         visitedCells[nextTileKey] = struct{}{}
@@ -83,19 +83,6 @@ func main() {
       currentPos = Vec2 { x: nextPos.x, y: nextPos.y }
     }
     if nextTile == '#' {
-      // if currentDir == '^' {
-      //   ruleKey = fmt.Sprintf("x%d_%c", nextPos.x, '<')
-      // }
-      // if currentDir == 'v' {
-      //   ruleKey = fmt.Sprintf("x%d_%c", nextPos.x, '>')
-      // }
-      // if currentDir == '<' {
-      //   ruleKey = fmt.Sprintf("y%d_%c", nextPos.y, 'v')
-      // }
-      // if currentDir == '>' {
-      //   ruleKey = fmt.Sprintf("y%d_%c", nextPos.y, '^')
-      // }
-
       var newDirection rune
       switch currentDir {
       case '^':
@@ -111,11 +98,76 @@ func main() {
     } 
   }
 
+  for y := range grid {
+    for x := range grid {
+      cellKey := fmt.Sprintf("%d_%d", y, x)
+      if _, ok := visitedCells[cellKey]; ok && HasLoop(grid, guard.pos, guard.direction, Vec2 { x, y }) {
+        loopCells[cellKey] = struct{}{}
+      }
+    }
+  }
+
   p1 := len(visitedCells)
   log.Printf("P1: %d", p1)
 
-  // p2 := len(obstacleCells)
-  // log.Printf("P2: %d", p2)
+  p2 := len(loopCells)
+  log.Printf("P2: %d", p2)
+}
+
+func HasLoop(grid [][]rune, pos Vec2, dir rune, wallPos Vec2) bool {
+  visitedCells := make(map[string]struct{})
+  currentPos := pos
+  currentDir := dir
+
+  grid[wallPos.y][wallPos.x] = '#'
+  hasLoop := false
+  for {
+    var nextPos Vec2
+    switch currentDir {
+    case '^':
+      nextPos = Vec2 { y: currentPos.y - 1, x: currentPos.x }
+    case 'v':
+      nextPos = Vec2 { y: currentPos.y + 1, x : currentPos.x }
+    case '>':
+      nextPos = Vec2 { y: currentPos.y, x: currentPos.x + 1 }
+    case '<':
+      nextPos = Vec2 { y: currentPos.y, x: currentPos.x - 1 }
+    default:
+      log.Fatalf("Unexpected char: %c", currentDir)
+    }
+
+    if !IsValidPos(grid, nextPos) {
+      break
+    }
+
+    nextTile := grid[nextPos.y][nextPos.x]
+    if nextTile == '.' {
+      currentCellKey := fmt.Sprintf("%d_%d_%c", currentPos.y, currentPos.x, currentDir)
+      if _, isLoop := visitedCells[currentCellKey]; isLoop {
+        hasLoop = true
+        break
+      }
+      visitedCells[currentCellKey] = struct{}{}
+      currentPos = Vec2 { x: nextPos.x, y: nextPos.y }
+    }
+    if nextTile == '#' {
+      var newDirection rune
+      switch currentDir {
+      case '^':
+        newDirection = '>'
+      case '>':
+        newDirection = 'v'
+      case 'v':
+        newDirection = '<'
+      case '<':
+        newDirection = '^'
+      }
+      currentDir = newDirection
+    } 
+  }
+  grid[wallPos.y][wallPos.x] = '.'
+
+  return hasLoop
 }
 
 func IsValidPos(grid [][]rune, pos Vec2) bool {
