@@ -48,12 +48,15 @@ func main() {
   }
 
   grid[guard.pos.y][guard.pos.x] = '.'
+  currentDir := guard.direction
   currentPos := guard.pos
   visitedCells := make(map[string]struct{})
   visitedCells[fmt.Sprintf("%d_%d", guard.pos.y, guard.pos.x)] = struct{}{}
+  // loopRules := make(map[string]struct{})
+  // wallCount := 3
   for {
     var nextPos Vec2
-    switch guard.direction {
+    switch currentDir {
     case '^':
       nextPos = Vec2 { y: currentPos.y - 1, x: currentPos.x }
     case 'v':
@@ -63,7 +66,7 @@ func main() {
     case '<':
       nextPos = Vec2 { y: currentPos.y, x: currentPos.x - 1 }
     default:
-      log.Fatalf("Unexpected char: %c", guard.direction)
+      log.Fatalf("Unexpected char: %c", currentDir)
     }
 
     if !IsValidPos(grid, nextPos) {
@@ -80,8 +83,21 @@ func main() {
       currentPos = Vec2 { x: nextPos.x, y: nextPos.y }
     }
     if nextTile == '#' {
+      // if currentDir == '^' {
+      //   ruleKey = fmt.Sprintf("x%d_%c", nextPos.x, '<')
+      // }
+      // if currentDir == 'v' {
+      //   ruleKey = fmt.Sprintf("x%d_%c", nextPos.x, '>')
+      // }
+      // if currentDir == '<' {
+      //   ruleKey = fmt.Sprintf("y%d_%c", nextPos.y, 'v')
+      // }
+      // if currentDir == '>' {
+      //   ruleKey = fmt.Sprintf("y%d_%c", nextPos.y, '^')
+      // }
+
       var newDirection rune
-      switch guard.direction {
+      switch currentDir {
       case '^':
         newDirection = '>'
       case '>':
@@ -91,12 +107,15 @@ func main() {
       case '<':
         newDirection = '^'
       }
-      guard.direction = newDirection
+      currentDir = newDirection
     } 
   }
 
   p1 := len(visitedCells)
   log.Printf("P1: %d", p1)
+
+  // p2 := len(obstacleCells)
+  // log.Printf("P2: %d", p2)
 }
 
 func IsValidPos(grid [][]rune, pos Vec2) bool {
