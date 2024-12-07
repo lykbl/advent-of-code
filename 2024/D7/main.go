@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -49,6 +50,9 @@ func main() {
         if op == '+' {
           acc = acc + numbers[i + 1]
         }
+        if op == '|' {
+          acc, _ = strconv.Atoi(fmt.Sprintf("%d%d", acc, numbers[i+1]))
+        }
       }
       if acc == target {
         p1 += target
@@ -61,7 +65,7 @@ func main() {
 }
 
 func GenerateCombinations(length int) [][]rune {
-	operators := []rune{'+', '*'}
+	operators := []rune{'+', '|', '*'}
 	totalCombinations := 1
 	for i := 0; i < length; i++ {
 		totalCombinations *= len(operators)
