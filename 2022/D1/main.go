@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -40,4 +41,16 @@ func main() {
   }
 
   log.Printf("P1: %d", elfCalories[maxCal])
+
+  v := make([]int, 0, len(elfCalories))
+  for  _, value := range elfCalories {
+    v = append(v, value)
+  }
+  slices.Sort(v)
+
+  p2 := 0
+  for i := len(v) - 3; i < len(v); i++ {
+    p2 += v[i]
+  }
+  log.Print(p2)
 }
