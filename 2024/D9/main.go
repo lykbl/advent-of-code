@@ -18,16 +18,16 @@ func main() {
   scanner := bufio.NewScanner(file)
 
   fileString := make([]rune, 0)
+  filesCount := 0
   for scanner.Scan() {
     line := scanner.Text()
 
-    fileI := 0
     for i, char := range []rune(line) {
       blocksCount := int(char - '0')
       c := '.'
       if i % 2 == 0 {
-        c = rune('0' + fileI)
-        fileI++
+        c = rune('0' + filesCount)
+        filesCount++
       }
 
       for y := 0; y < blocksCount; y++ {
@@ -36,17 +36,47 @@ func main() {
     }
   }
 
-  left, right := 0, len(fileString) - 1
-  for left < right {
-    if fileString[left] != '.' {
-      left++
-      continue
-    }
+  for fileI := filesCount; fileI > 0; fileI-- {
+    fileRune := rune('0' + fileI)
 
-    fileString[left] = fileString[right]
-    fileString[right] = '.'
-    right--
+    right := len(fileString) - 1
+    for right > 0 {
+      if fileString[right] != fileRune {
+        right--
+        continue
+      }
+
+      fileStart := right
+      for fileString[right] == fileRune {
+        right--
+      }
+      fileSize := fileStart - right
+      left := 0
+
+      for left < right {
+        for left < len(fileString) - 1 && fileString[left] != '.' {
+          left++
+          continue
+        }
+
+        bufStart := left
+        for fileString[left] == '.' && left <= right {
+          left++
+        }
+        bufSize := left - bufStart
+
+        if fileSize <= bufSize {
+          for a := 0; a < fileSize; a++ {
+            fileString[bufStart + a] = fileRune
+            fileString[fileStart - a] = '.'
+          }
+          right = -1
+          break
+        }
+      }
+    }
   }
+  log.Printf("Result: %s", string(fileString))
 
   checksum := 0
   for i, char := range fileString {
