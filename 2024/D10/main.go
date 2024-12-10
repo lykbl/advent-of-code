@@ -37,7 +37,8 @@ type Step struct {
 }
 
 func main() {
-  // f, err := os.Open("input.txt")
+  // f, err := os.Open("test.txt")
+  f, err := os.Open("input.txt")
   if err != nil {
     log.Fatal("F")
   }
@@ -76,7 +77,7 @@ func main() {
       visitQueue = visitQueue[0:len(visitQueue) - 1]
       log.Printf("New queue: %v, %v", currentStep, visitQueue)
       if _, alreadyVisited := currentStep.visitedCells[fmt.Sprintf("%d_%d", currentStep.currentPos[0], currentStep.currentPos[1])]; alreadyVisited {
-        continue
+        // continue
       }
       currentStep.visitedCells[fmt.Sprintf("%d_%d", currentStep.currentPos[0], currentStep.currentPos[1])] = struct{}{}
       currentHeight := grid[currentStep.currentPos[0]][currentStep.currentPos[1]]
