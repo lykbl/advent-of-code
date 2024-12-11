@@ -10,35 +10,7 @@ import (
 	"strings"
 )
 
-func GetMoves(g [][]rune, pos [2]int) [][2]int {
-  moves := [][2]int{
-   { pos[0] + 1, pos[1] },
-   { pos[0] - 1, pos[1] },
-   { pos[0], pos[1] + 1 },
-   { pos[0], pos[1] - 1},
-  }
-
-  validMoves := make([][2]int, 0)
-  for _, move := range moves {
-    log.Printf("Trying move: %v", move)
-    if IsValidPos(g, move) {
-      validMoves = append(validMoves, move)
-      log.Printf("added")
-    }
-  }
-
-  return validMoves
-}
-
-func IsValidPos(g [][]rune, pos [2]int) bool {
-  return pos[1] >= 0 && pos[0] >= 0 && pos[0] < len(g) && pos[1] < len(g[pos[0]])
-} 
-
-type Step struct {
-  visitedCells map[string]struct{}
-  currentPos [2]int
-}
-
+var cache = make(map[string]int)
 func main() {
   // f, err := os.Open("test.txt")
   f, err := os.Open("input.txt")
@@ -63,37 +35,21 @@ func main() {
     }
   }
 
-  blinkTimes := 25
-  stonesP1 := slices.Clone(stones)
-  for y := 0; y < blinkTimes; y++ {
-    stonesP1 = FlipStones(stonesP1)
-  }
-
-  p1 := len(stonesP1)
-  log.Printf("P1: %d", p1)
-
-  blinkTimes = 75
-  cache := make(map[string]int, 0)
-  p2 := Blink(stones, blinkTimes, cache)
-  log.Printf("P2: %d", p2)
+  log.Printf("P1: %d", Blink(slices.Clone(stones), 25))
+  log.Printf("P2: %d", Blink(slices.Clone(stones), 75))
 }
 
 func FlipStones(stones []int) []int {
   for i := 0; i < len(stones); i++ {
-    stone := stones[i]
-    stoneStr := strconv.Itoa(stone) 
-    if stone == 0 {
+    if stones[i] == 0 {
       stones[i] = 1
-    } else if len(stoneStr) % 2 == 0 {
-      stoneA := stoneStr[:len(stoneStr)/ 2]
-      stoneAN, _ := strconv.Atoi(stoneA)
+    } else if stoneStr := strconv.Itoa(stones[i]); len(strconv.Itoa(stones[i])) % 2 == 0 {
+      leftHalf,  _ := strconv.Atoi(stoneStr[:len(stoneStr) / 2])
+      rightHalf, _ := strconv.Atoi(stoneStr[len(stoneStr) / 2:])
 
-      stoneB := stoneStr[len(stoneStr) / 2:]
-      stoneBN, _ := strconv.Atoi(stoneB)
-
-      stones[i] = stoneAN
+      stones[i] = leftHalf
       i++
-      stones = slices.Insert(stones, i, stoneBN)
+      stones = slices.Insert(stones, i, rightHalf)
     } else {
       stones[i] = stones[i] * 2024
     }
@@ -102,21 +58,20 @@ func FlipStones(stones []int) []int {
   return stones
 }
 
-func Blink(stones []int, blinksRemaining int, cache map[string]int) int {
+func Blink(stones []int, blinksRemaining int) int {
   if blinksRemaining == 0 {
     return len(stones)
   }
 
   stones = FlipStones(stones)
   result := 0
-  for i := 0; i < len(stones); i++ {
-    if cachedResult, alreadyCached := cache[fmt.Sprintf("%d_%d", blinksRemaining - 1, stones[i])]; alreadyCached {
-      result += cachedResult
-    } else {
-      calculated := Blink([]int{stones[i]}, blinksRemaining - 1, cache)
-      cache[fmt.Sprintf("%d_%d", blinksRemaining - 1, stones[i])] = calculated
-      result += calculated
+  for _, stone := range stones {
+    cacheKey := fmt.Sprintf("%d_%d", blinksRemaining - 1, stone)
+    if _, alreadyCached := cache[cacheKey]; !alreadyCached {
+      cache[cacheKey] = Blink([]int{stone}, blinksRemaining - 1)
     }
+
+    result += cache[cacheKey]
   }
 
   return result
