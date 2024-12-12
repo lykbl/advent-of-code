@@ -10,6 +10,7 @@ import (
 var cache = make(map[string]int)
 func main() {
   // f, err := os.Open("test.txt")
+  // f, err := os.Open("test-1.txt")
   f, err := os.Open("input.txt")
   if err != nil {
     log.Fatal("F")
@@ -71,11 +72,74 @@ func main() {
     }
   }
 
-  log.Printf("P1: %d", p1)
+  p2 := 0
+  for farmType, farmPlots := range farmPlots {
+    for _, farmPlot := range farmPlots {
+      totalArea := PlotArea(farmPlot)
+      sidesCount := PlotSides(grid, farmPlot)
+      log.Printf("A region of %c plants with price %d * %d = %d.\n", farmType, totalArea, sidesCount, totalArea * sidesCount)
+      p2 += totalArea * sidesCount
+    }
+  }
+
+  log.Printf("P2: %d", p2)
 }
 
 func PlotArea(plot [][2]int) int {
   return len(plot)
+}
+
+type Step struct {
+  pos [2]int
+  dir rune
+}
+
+func PlotSides(grid [][]rune, plot [][2]int) int {
+  farmType := grid[plot[0][0]][plot[0][1]]
+  corners := 0
+
+  for _, pos := range plot {
+    y, x := pos[0], pos[1]
+    if !IsSameFarmType(grid, farmType, [2]int{y + 1, x}) && !IsSameFarmType(grid, farmType, [2]int{y, x - 1}) {
+      corners++
+    }
+    if !IsSameFarmType(grid, farmType, [2]int{y + 1, x}) && !IsSameFarmType(grid, farmType, [2]int{y, x + 1}) {
+      corners++
+    }
+    if !IsSameFarmType(grid, farmType, [2]int{y - 1, x}) && !IsSameFarmType(grid, farmType, [2]int{y, x + 1}) {
+      corners++
+    }
+    if !IsSameFarmType(grid, farmType, [2]int{y - 1, x}) && !IsSameFarmType(grid, farmType, [2]int{y, x - 1}) {
+      corners++
+    }
+
+    if IsSameFarmType(grid, farmType, [2]int{y + 1, x}) && IsSameFarmType(grid, farmType, [2]int{y, x - 1}) && !IsSameFarmType(grid, farmType, [2]int{y + 1, x - 1}) {
+      corners++
+    }
+    if IsSameFarmType(grid, farmType, [2]int{y + 1, x}) && IsSameFarmType(grid, farmType, [2]int{y, x + 1}) && !IsSameFarmType(grid, farmType, [2]int{y + 1, x + 1}) {
+      corners++
+    }
+    if IsSameFarmType(grid, farmType, [2]int{y - 1, x}) && IsSameFarmType(grid, farmType, [2]int{y, x + 1}) && !IsSameFarmType(grid, farmType, [2]int{y - 1, x + 1}) {
+      corners++
+    }
+    if IsSameFarmType(grid, farmType, [2]int{y - 1, x}) && IsSameFarmType(grid, farmType, [2]int{y, x - 1}) && !IsSameFarmType(grid, farmType, [2]int{y - 1, x - 1}) {
+      corners++
+    }
+  }
+
+  return corners
+}
+
+func IsSameFarmType(grid [][]rune, farmType rune, pos [2]int) bool {
+  if !IsValid(grid, pos) {
+    return false
+  }
+
+  if grid[pos[0]][pos[1]] == farmType {
+    return true
+  }
+
+  return false
 }
 
 func PlotPerim(grid [][]rune, plot [][2]int) int {
@@ -105,4 +169,4 @@ func PlotPerim(grid [][]rune, plot [][2]int) int {
 func IsValid(grid [][]rune, pos [2]int) bool {
   return pos[0] >= 0 && pos[1] >= 0 && pos[0] < len(grid) && pos[1] < len(grid[pos[0]])
 }
- 
+
