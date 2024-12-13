@@ -85,6 +85,14 @@ func main() {
   }
   log.Printf("P1: %d", p1)
 
+  p2 := 0
+  offset := 10000000000000
+  for _, hook := range hooks {
+    a, b, _ := SolveForHook(float64(hook.targetX + offset), float64(hook.a.x), float64(hook.b.x), float64(hook.targetY + offset), float64(hook.a.y), float64(hook.b.y))
+    p2 += int(a * 3 + b * 1)
+  }
+
+  log.Printf("P2: %d", p2)
 }
 
 func SolveForHook(targetX, aX, bX, targetY, aY, bY float64) (float64, float64, error) {
