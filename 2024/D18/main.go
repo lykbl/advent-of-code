@@ -84,6 +84,50 @@ func main() {
   }
   fmt.Printf("P1: %d", p1)
 
+  for curSimLimit := simLimit; curSimLimit < len(corruptedBytes); curSimLimit++ {
+    answerExists := false
+    queue = []Step{
+      {curPos: start, steps: 0},
+    }
+    grid[corruptedBytes[curSimLimit][1]][corruptedBytes[curSimLimit][0]] = '#'
+    visited = make(map[string]struct{}, 0)
+    visited[fmt.Sprintf("%d_%d", start[0], start[1])] = struct{}{}
+    for len(queue) > 0 {
+      curStep := queue[0]
+      queue = queue[1:]
+      if curStep.curPos == end {
+        answerExists = true
+        break
+      }
+
+      dirs := [][2]int{
+        {0, 1},
+        {1, 0},
+        {-1, 0},
+        {0, -1},
+      }
+      for _, dir := range dirs {
+        newPos := [2]int{curStep.curPos[0] + dir[0], curStep.curPos[1] + dir[1]}
+        if newPos[0] < 0 || newPos[1] < 0 || newPos[0] > width || newPos[1] > height || grid[newPos[1]][newPos[0]] == '#' {
+          continue
+        }
+        if _, alreadyVisited := visited[fmt.Sprintf("%d_%d", newPos[0], newPos[1])]; alreadyVisited {
+          continue
+        }
+        visited[fmt.Sprintf("%d_%d", newPos[0], newPos[1])] = struct{}{}
+
+        queue = append(queue, Step {
+          curPos: newPos,
+          steps: curStep.steps + 1,
+        })
+      }
+    }
+
+    if answerExists == false {
+      fmt.Printf("No longer found at: %d, %v\n", curSimLimit, corruptedBytes[curSimLimit])
+      break
+    }
+  }
 }
 
 type Step struct {
