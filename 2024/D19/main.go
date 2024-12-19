@@ -30,38 +30,38 @@ func main() {
 
   fmt.Printf("Patterns: %v\nDeisngs: %v\n", patterns, designs)
   valid := 0
-  memory := make(map[string]bool, 0)
+  memory := make(map[string]int, 0)
+  p2 := 0
   for i, design := range designs {
     fmt.Printf("Doing %d out of %d\n", i, len(designs))
-    if IsDesignPossible(patterns, design, memory) {
+    counts := IsDesignPossible(patterns, design, memory)
+    if counts > 0 {
       valid++
+      p2 += counts
     }
   }
 
   fmt.Printf("Valid: %d\n", valid)
+  fmt.Printf("P2: %d\n", p2)
 }
 
-func IsDesignPossible(patterns []string, design string, memory map[string]bool) bool {
+func IsDesignPossible(patterns []string, design string, memory map[string]int) int {
   if cached, alreadyFound := memory[design]; alreadyFound {
     return cached
   }
 
   if design == "" {
-    return true
+    return 1
   }
 
+  count := 0
   for _, pattern := range patterns {
     newDesign, found := strings.CutPrefix(design, pattern)
-
     if found {
-      isValidPattern := IsDesignPossible(patterns, newDesign, memory)
-      if isValidPattern {
-        memory[newDesign] = true
-        return true
-      }
+      count += IsDesignPossible(patterns, newDesign, memory)
     }
   }
 
-  memory[design] = false
-  return false
+  memory[design] = count
+  return count
 }
