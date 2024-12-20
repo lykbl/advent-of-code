@@ -51,7 +51,6 @@ func main() {
   for {
     trackTimes[fmt.Sprintf("%d_%d", currentCell[0], currentCell[1])] = trackTime
     trackTime++
-    fmt.Printf("Dioing cell: %v\n", currentCell)
     if currentCell == end {
       break
     }
@@ -70,7 +69,7 @@ func main() {
     }
   }
 
-  fmt.Printf("Track times: %v\n", trackTimes)
+  // fmt.Printf("Track times: %v\n", trackTimes)
   // cheatTime := 2
   cheatTimes := make(map[int]int, 0)
   for cellKey, cellTime := range trackTimes {
@@ -101,4 +100,74 @@ func main() {
     }
   }
   fmt.Printf("P1: %d\n", p1)
+
+  maxCheatSteps := 20
+  cheatSavedTimes := make(map[string]int, 0)
+  for cellKey, cellTime := range trackTimes {
+    parts := strings.Split(cellKey, "_")
+    x, _ := strconv.Atoi(parts[0])
+    y, _ := strconv.Atoi(parts[1])
+
+    visited := make(map[string]struct{}, 0)
+    queue := make([]CheatStep, 0)
+    queue = append(queue, CheatStep{
+      curPos: [2]int{x, y},
+      stepsTaken: 0,
+    })
+
+    maxCheatSteps = 20
+    for len(queue) > 0 {
+      curStep := queue[0]
+      queue = queue[1:]
+      if curStep.stepsTaken > maxCheatSteps {
+        continue
+      }
+      if _, alreadyVisited := visited[fmt.Sprintf("%d_%d", curStep.curPos[0], curStep.curPos[1])]; alreadyVisited {
+        continue
+      }
+
+      visited[fmt.Sprintf("%d_%d", curStep.curPos[0], curStep.curPos[1])] = struct{}{}
+      if curStep.stepsTaken <= maxCheatSteps && grid[curStep.curPos[1]][curStep.curPos[0]] == '.' {
+        skipCellTime := trackTimes[fmt.Sprintf("%d_%d", curStep.curPos[0], curStep.curPos[1])]
+        timeSaved := skipCellTime - cellTime - curStep.stepsTaken
+
+        maxTimeSaved := cheatSavedTimes[fmt.Sprintf("%d_%d-%d_%d", x, y, curStep.curPos[0], curStep.curPos[1])]
+        if maxTimeSaved < timeSaved {
+          cheatSavedTimes[fmt.Sprintf("%d_%d-%d_%d", x, y, curStep.curPos[0], curStep.curPos[1])] = timeSaved
+        }
+      }
+
+      for _, dir := range dirs {
+        nextPos := [2]int{curStep.curPos[0] + dir[0], curStep.curPos[1] + dir[1]}
+        if nextPos[1] >= len(grid) || nextPos[1] < 0 || nextPos[0] < 0 || nextPos[0] >= len(grid[y]) {
+          continue
+        }
+
+        queue = append(queue, CheatStep {
+          curPos: nextPos,
+          stepsTaken: curStep.stepsTaken + 1,
+        })
+      }
+    }
+  }
+
+  counts := make(map[int]int, 0)
+  for _, timeSaved := range cheatSavedTimes {
+    counts[timeSaved]++
+  }
+  
+  p2 := 0
+  for timeSaved, count := range counts {
+    if timeSaved >= 100 {
+      p2 += count
+    }
+  }
+
+  fmt.Printf("P2: %d\n", p2)
+}
+
+type CheatStep struct {
+  curPos [2]int
+  stepsTaken int
+  path [][2]int
 }
